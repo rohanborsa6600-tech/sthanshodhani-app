@@ -1,4 +1,4 @@
-name: Build Sthanshodhani App
+name: Sthanshodhani Guaranteed Build
 
 on: [push, workflow_dispatch]
 
@@ -8,16 +8,24 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       
+      # सेटअप
       - uses: actions/setup-node@v3
         with: { node-version: 16 }
       - run: npm install -g cordova
       - uses: actions/setup-java@v3
         with: { distribution: "temurin", java-version: "17" }
 
-      # --- STEP 1: प्रोजेक्ट तयार करणे ---
-      - name: Create Native Project
+      # --- STEP 1: रोबोटने स्वतः फोटो डाउनलोड करणे (एरर फिक्स) ---
+      - name: Download Assets Directly
         run: |
-          # Cordova Android 12.0.0 वापरू (हे Java 17 साठी बेस्ट आहे)
+          # हे फोटो थेट रोबोटच्या मशीनवर येतील
+          curl -L -o icon.png "https://cdn-icons-png.flaticon.com/512/3617/3617158.png"
+          curl -L -o login_bg.png "https://images.unsplash.com/photo-1557683316-973673baf926?w=1080&q=80"
+
+      # --- STEP 2: प्रोजेक्ट तयार करणे ---
+      - name: Create Project
+        run: |
+          # Cordova 12 (Stable)
           cordova create myapp com.sthanshodhani.user "Sthanshodhani"
           cd myapp
           cordova platform add android@12.0.0
@@ -26,6 +34,7 @@ jobs:
           cordova plugin add cordova-plugin-statusbar
           cordova plugin add cordova-plugin-device
           cordova plugin add cordova-plugin-whitelist
+          cordova plugin add cordova-plugin-splashscreen
           
           # Config Settings
           sed -i "s|<content src=\"index.html\" />|<content src=\"index.html\" />|" config.xml
@@ -34,13 +43,14 @@ jobs:
           sed -i "/<access origin=\"\*\" \/>/a <allow-navigation href=\"*\" />" config.xml
           cd ..
 
-      # --- STEP 2: Smart Index File (Firebase + Redirect) ---
+      # --- STEP 3: फाइल्स सेट करणे ---
       - name: Setup App Files
         run: |
+          # आता हे फोटो नक्की सापडतील
           cp icon.png myapp/www/icon.png
           cp login_bg.png myapp/www/login_bg.png
           
-          # HTML फाईल (तुमच्या Firebase लिंकसह)
+          # HTML फाईल (Firebase + Redirect)
           echo "<!DOCTYPE html>
           <html>
           <head>
@@ -90,7 +100,7 @@ jobs:
           cd myapp
           sed -i "/<widget/a <icon src=\"www/icon.png\" />" config.xml
 
-      # --- STEP 3: APK Build ---
+      # --- STEP 4: APK Build ---
       - name: Build APK
         run: |
           cd myapp
@@ -98,5 +108,5 @@ jobs:
           
       - uses: actions/upload-artifact@v4
         with:
-          name: Sthanshodhani-User-App
+          name: Sthanshodhani-App-Final
           path: myapp/platforms/android/app/build/outputs/apk/debug/app-debug.apk
