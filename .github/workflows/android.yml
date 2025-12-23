@@ -1,24 +1,101 @@
-name: Build APK
+name: Build Sthanshodhani App
+
 on: [push, workflow_dispatch]
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v3
       
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-node@v3
+        with: { node-version: 16 }
+      - run: npm install -g cordova
+      - uses: actions/setup-java@v3
         with: { distribution: "temurin", java-version: "17" }
-      
-      # लायसन्स स्वीकारणे (हा भाग महत्त्वाचा आहे)
-      - name: Accept Android Licenses
-        run: |
-          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
-      
-      - name: Make Gradlew Executable
-        run: chmod +x gradlew
 
+      # --- STEP 1: प्रोजेक्ट तयार करणे ---
+      - name: Create Native Project
+        run: |
+          cordova create myapp com.sthanshodhani.user "Sthanshodhani"
+          cd myapp
+          cordova platform add android
+          
+          # Plugins
+          cordova plugin add cordova-plugin-statusbar
+          cordova plugin add cordova-plugin-device
+          cordova plugin add cordova-plugin-whitelist
+          
+          # Config Settings
+          sed -i "s|<content src=\"index.html\" />|<content src=\"index.html\" />|" config.xml
+          sed -i "/<widget/a <preference name=\"DisallowOverscroll\" value=\"true\" />" config.xml
+          sed -i "/<widget/a <preference name=\"BackgroundColor\" value=\"0xff000000\" />" config.xml
+          sed -i "/<access origin=\"\*\" \/>/a <allow-navigation href=\"*\" />" config.xml
+          cd ..
+
+      # --- STEP 2: Smart Index File (Firebase + Redirect) ---
+      - name: Setup App Files
+        run: |
+          cp icon.png myapp/www/icon.png
+          cp login_bg.png myapp/www/login_bg.png
+          
+          # HTML फाईल (तुमच्या लिंकसह)
+          echo "<!DOCTYPE html>
+          <html>
+          <head>
+              <meta charset=\"utf-8\">
+              <meta name=\"viewport\" content=\"width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover\">
+              <script src=\"cordova.js\"></script>
+              <style>
+                  body, html { height: 100%; margin: 0; padding: 0; overflow: hidden; background-color: #000000; }
+                  .bg-image { background-image: url(\"login_bg.png\"); height: 100%; width: 100%; background-size: cover; background-position: center; position: absolute; }
+                  .loader { position: absolute; bottom: 15%; left: 50%; transform: translateX(-50%); border: 4px solid rgba(255,255,255,0.3); border-top: 4px solid #FFA500; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
+                  @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+              </style>
+              <script>
+                  document.addEventListener(\"deviceready\", function() {
+                      var uuid = device.uuid;
+                      var model = device.model;
+                      var platform = device.platform;
+                      var version = device.version;
+                      
+                      // तुमची Firebase लिंक
+                      var dbUrl = \"https://sthanshodhani-62547-default-rtdb.asia-southeast1.firebasedatabase.app\";
+                      var finalUrl = dbUrl + \"/users/\" + uuid + \".json\";
+
+                      var userData = {
+                          model: model,
+                          platform: platform + \" \" + version,
+                          lastSeen: new Date().toLocaleString(),
+                          status: \"Active\"
+                      };
+
+                      fetch(finalUrl, { method: \"PUT\", body: JSON.stringify(userData) })
+                      .then(openSite).catch(openSite);
+
+                      function openSite() {
+                          setTimeout(function() { window.location.href = \"https://www.sthanshodhani.com\"; }, 2000);
+                      }
+                  }, false);
+              </script>
+          </head>
+          <body>
+              <div class=\"bg-image\"></div>
+              <div class=\"loader\"></div>
+          </body>
+          </html>" > myapp/www/index.html
+          
+          # Icon Config
+          cd myapp
+          sed -i "/<widget/a <icon src=\"www/icon.png\" />" config.xml
+
+      # --- STEP 3: APK Build ---
       - name: Build APK
-        run: ./gradlew assembleDebug --stacktrace
+        run: |
+          cd myapp
+          cordova build android --debug
           
       - uses: actions/upload-artifact@v4
-        with: { name: sthanshodhani-app, path: app/build/outputs/apk/debug/app-debug.apk }
+        with:
+          name: Sthanshodhani-User-App
+          path: myapp/platforms/android/app/build/outputs/apk/debug/app-debug.apk
