@@ -1,4 +1,4 @@
-name: Build Android APK
+name: Build Sthanshodhani APK
 
 on:
   push:
@@ -9,33 +9,71 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+      # 1. तुमचा कोड घेणे
+      - uses: actions/checkout@v3
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '16'
+      # 2. Node.js सेट करणे
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+      
+      # 3. Cordova टूल टाकणे
+      - run: npm install -g cordova
 
-    - name: Setup Java
-      uses: actions/setup-java@v3
-      with:
-        distribution: 'temurin'
-        java-version: '17'
+      # 4. Java 17 टाकणे (Android 12+ साठी गरजेचे)
+      - uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
 
-    - name: Install Cordova
-      run: npm install -g cordova
+      # 5. नवीन फ्रेश प्रोजेक्ट बनवणे (इथेच खरी जादू आहे!)
+      - name: Create Fresh Cordova Project
+        run: |
+          # नवीन कोरा प्रोजेक्ट तयार करा
+          cordova create SthanshodhaniApp com.sthanshodhani.app "Sthanshodhani"
+          
+          # प्रोजेक्टच्या आत जा
+          cd SthanshodhaniApp
+          
+          # प्लगइन्स ॲड करा (Device Plugin महत्त्वाचे आहे UUID साठी)
+          cordova plugin add cordova-plugin-device
+          
+          # Android प्लॅटफॉर्म ॲड करा
+          cordova platform add android
+          
+          cd ..
 
-    - name: Install Dependencies
-      run: npm install --legacy-peer-deps
+      # 6. सेटिंग्ज लावणे (Full Screen, No Zoom)
+      - name: Configure Settings
+        run: |
+          cd SthanshodhaniApp
+          # फुल स्क्रीन मोड
+          sed -i '/<widget/a <preference name="Fullscreen" value="true" />' config.xml
+          # ओव्हरस्क्रोल बंद (रबर बँड इफेक्ट नको)
+          sed -i '/<widget/a <preference name="DisallowOverscroll" value="true" />' config.xml
+          cd ..
 
-    - name: Add Android Platform
-      run: cordova platform add android@12.0.0
+      # 7. तुमच्या फाईल्स नवीन ॲपमध्ये टाकणे
+      - name: Copy User Files
+        run: |
+          # नवीन प्रोजेक्टमधील डीफॉल्ट फाईल्स उडवणे
+          rm SthanshodhaniApp/www/index.html
+          rm -rf SthanshodhaniApp/www/js
+          rm -rf SthanshodhaniApp/www/css
+          rm -rf SthanshodhaniApp/www/img
 
-    - name: Build Android APK
-      run: cordova build android --debug
+          # तुमची www फोल्डरची सर्व सामग्री कॉपी करणे
+          # (हे GitHub वरील तुमच्या www फोल्डरमधील index.html आणि img उचलते)
+          cp -r www/* SthanshodhaniApp/www/
 
-    - name: Upload APK
-      uses: actions/upload-artifact@v4
-      with:
-        name: Sthanshodhani-APK
-        path: platforms/android/app/build/outputs/apk/debug/app-debug.apk
+      # 8. APK फायनल बिल्ड करणे
+      - name: Build APK
+        run: |
+          cd SthanshodhaniApp
+          cordova build android --debug
+
+      # 9. APK अपलोड करणे (तुम्हाला डाउनलोड करण्यासाठी)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Sthanshodhani-APK
+          path: SthanshodhaniApp/platforms/android/app/build/outputs/apk/debug/app-debug.apk
