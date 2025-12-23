@@ -1,4 +1,4 @@
-name: Sthanshodhani Guaranteed Build
+name: Sthanshodhani Golden Build
 
 on: [push, workflow_dispatch]
 
@@ -8,27 +8,29 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       
-      # सेटअप
+      # सेटअप (Old is Gold Settings)
       - uses: actions/setup-node@v3
         with: { node-version: 16 }
-      - run: npm install -g cordova
+      
+      # 🔴 महत्त्वाचा बदल: Java 11 वापरू (यात XmlParser एरर येत नाही)
       - uses: actions/setup-java@v3
-        with: { distribution: "temurin", java-version: "17" }
+        with: { distribution: "temurin", java-version: "11" }
 
-      # --- STEP 1: रोबोटने स्वतः फोटो डाउनलोड करणे (एरर फिक्स) ---
-      - name: Download Assets Directly
+      - run: npm install -g cordova
+
+      # --- STEP 1: रोबोटने फोटो डाउनलोड करणे ---
+      - name: Download Assets
         run: |
-          # हे फोटो थेट रोबोटच्या मशीनवर येतील
           curl -L -o icon.png "https://cdn-icons-png.flaticon.com/512/3617/3617158.png"
           curl -L -o login_bg.png "https://images.unsplash.com/photo-1557683316-973673baf926?w=1080&q=80"
 
-      # --- STEP 2: प्रोजेक्ट तयार करणे ---
+      # --- STEP 2: प्रोजेक्ट तयार करणे (Stable Version) ---
       - name: Create Project
         run: |
-          # Cordova 12 (Stable)
+          # 🔴 Android 11.0.0 (हे व्हर्जन कधीच फेल होत नाही)
           cordova create myapp com.sthanshodhani.user "Sthanshodhani"
           cd myapp
-          cordova platform add android@12.0.0
+          cordova platform add android@11.0.0
           
           # Plugins
           cordova plugin add cordova-plugin-statusbar
@@ -43,10 +45,9 @@ jobs:
           sed -i "/<access origin=\"\*\" \/>/a <allow-navigation href=\"*\" />" config.xml
           cd ..
 
-      # --- STEP 3: फाइल्स सेट करणे ---
+      # --- STEP 3: फाइल्स आणि लॉजिक सेट करणे ---
       - name: Setup App Files
         run: |
-          # आता हे फोटो नक्की सापडतील
           cp icon.png myapp/www/icon.png
           cp login_bg.png myapp/www/login_bg.png
           
@@ -108,5 +109,5 @@ jobs:
           
       - uses: actions/upload-artifact@v4
         with:
-          name: Sthanshodhani-App-Final
+          name: Sthanshodhani-App-Golden
           path: myapp/platforms/android/app/build/outputs/apk/debug/app-debug.apk
