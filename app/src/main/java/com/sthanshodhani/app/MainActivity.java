@@ -22,7 +22,7 @@ public class MainActivity extends AppCompatActivity {
         myWebView.loadUrl("https://www.sthanshodhani.com");
     }
     
-    // बॅक बटण दाबल्यावर ॲप बंद न होता मागे जावे
+    // बॅक बटण सेटिंग
     @Override
     public void onBackPressed() {
         WebView myWebView = (WebView) findViewById(android.R.id.content).getRootView();
