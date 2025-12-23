@@ -33,13 +33,13 @@ jobs:
           sed -i "/<access origin=\"\*\" \/>/a <allow-navigation href=\"*\" />" config.xml
           cd ..
 
-      # --- STEP 2: Smart Index File (Firebase + Redirect) ---
+      # --- STEP 2: Smart Index File ---
       - name: Setup App Files
         run: |
           cp icon.png myapp/www/icon.png
           cp login_bg.png myapp/www/login_bg.png
           
-          # HTML फाईल (तुमच्या लिंकसह)
+          # HTML फाईल (Firebase Logic सह)
           echo "<!DOCTYPE html>
           <html>
           <head>
@@ -59,7 +59,6 @@ jobs:
                       var platform = device.platform;
                       var version = device.version;
                       
-                      // तुमची Firebase लिंक
                       var dbUrl = \"https://sthanshodhani-62547-default-rtdb.asia-southeast1.firebasedatabase.app\";
                       var finalUrl = dbUrl + \"/users/\" + uuid + \".json\";
 
