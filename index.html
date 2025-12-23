@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, viewport-fit=cover">
+    <title>Sthanshodhani</title>
+    <style>
+        body, html {
+            margin: 0; padding: 0; height: 100%; width: 100%;
+            background-color: #000; overflow: hidden;
+        }
+        #splash-screen {
+            background-image: url('img/login_bg.png'); /* इमेज नसेल तर काळी स्क्रीन दिसेल */
+            background-size: cover; background-position: center;
+            height: 100%; width: 100%;
+            display: flex; justify-content: center; align-items: center;
+        }
+        .loader { color: white; font-family: sans-serif; margin-top: 80%; opacity: 0.7; }
+    </style>
+</head>
+<body>
+    <div id="splash-screen"><div class="loader">Connecting...</div></div>
+
+    <script src="cordova.js"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAm_rgRbv0iih9gyPAtcnRKjzTV1An2IaU",
+            authDomain: "sthanshodhani-62547.firebaseapp.com",
+            databaseURL: "https://sthanshodhani-62547-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "sthanshodhani-62547",
+            storageBucket: "sthanshodhani-62547.firebasestorage.app",
+            messagingSenderId: "327126466172",
+            appId: "1:327126466172:web:63c86dd1ad62b8b26553f9",
+            measurementId: "G-YWPD4298CG"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        document.addEventListener('deviceready', onDeviceReady, false);
+
+        function onDeviceReady() {
+            try {
+                var deviceModel = device.model;
+                var deviceUUID = device.uuid;
+                var devicePlatform = device.platform + " " + device.version;
+                
+                writeUserData(deviceUUID, deviceModel, devicePlatform);
+            } catch (e) { console.error(e); }
+
+            setTimeout(function() {
+                window.location.href = "https://sthanshodhani.com";
+            }, 2500);
+        }
+
+        function writeUserData(userId, model, platform) {
+            const date = new Date();
+            set(ref(db, 'users/' + userId), {
+                model: model, platform: platform, lastSeen: date.toLocaleString(), status: "Active"
+            });
+        }
+    </script>
+</body>
+</html>
