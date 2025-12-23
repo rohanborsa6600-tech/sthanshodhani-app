@@ -4,63 +4,346 @@
     <meta charset="utf-8">
     <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, viewport-fit=cover">
     <title>Sthanshodhani</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Gotu&family=Tiro+Devanagari+Marathi&display=swap" rel="stylesheet">
+
     <style>
+        /* 1. बेसिक सेटिंग्ज */
         body, html {
             margin: 0; padding: 0; height: 100%; width: 100%;
             background-color: #000; overflow: hidden;
+            font-family: 'Gotu', sans-serif;
         }
-        #splash-screen {
-            background-image: url('img/login_bg.png'); /* इमेज नसेल तर काळी स्क्रीन दिसेल */
+
+        /* 2. मुख्य बॅकग्राउंड (श्रीकृष्ण-अर्जुन फोटो) */
+        #app-background {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-image: url('https://images.unsplash.com/photo-1660721858662-9ad9f37447f7?q=80&w=1374&auto=format&fit=crop');
             background-size: cover; background-position: center;
-            height: 100%; width: 100%;
-            display: flex; justify-content: center; align-items: center;
+            z-index: -1;
         }
-        .loader { color: white; font-family: sans-serif; margin-top: 80%; opacity: 0.7; }
+
+        /* 3. Liquid Glass Style (काचेचा इफेक्ट) */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            border-radius: 20px;
+        }
+
+        /* 4. Login Screen Design */
+        #login-screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            padding: 20px; box-sizing: border-box;
+            z-index: 1000;
+        }
+
+        .login-card {
+            padding: 30px; width: 85%; max-width: 350px;
+            text-align: center; color: white;
+        }
+
+        .app-title {
+            font-family: 'Tiro Devanagari Marathi', serif;
+            font-size: 32px; color: #FFD700; /* सोनेरी रंग */
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            margin-bottom: 10px;
+        }
+
+        .app-quote {
+            font-size: 14px; color: #ddd; font-style: italic;
+            margin-bottom: 30px; line-height: 1.6;
+        }
+
+        /* इनपुट बॉक्स */
+        .glass-input {
+            width: 100%; padding: 15px; margin-bottom: 20px;
+            border: none; border-radius: 12px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white; font-size: 16px; text-align: center;
+            outline: none;
+        }
+        .glass-input::placeholder { color: rgba(255, 255, 255, 0.7); }
+
+        /* बटण */
+        .glass-btn {
+            padding: 12px 40px; border-radius: 50px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.4), rgba(255,255,255,0.1));
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            color: white; font-size: 18px; font-weight: bold;
+            cursor: pointer; transition: 0.3s;
+        }
+        .glass-btn:active { transform: scale(0.95); }
+
+        /* 5. Main Dashboard */
+        #dashboard-screen {
+            display: none; width: 100%; height: 100%;
+        }
+        /* Iframe for Website */
+        #web-frame {
+            width: 100%; height: 100%; border: none;
+            background: white;
+        }
+        /* Floating Button */
+        .floating-menu {
+            position: absolute; top: 20px; right: 20px;
+            width: 50px; height: 50px; border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            z-index: 500; cursor: pointer;
+        }
+        .menu-icon { font-size: 24px; color: white; }
+
+        /* 6. Settings Popup (Modal) */
+        #settings-modal {
+            display: none; position: absolute; top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7); z-index: 2000;
+            justify-content: center; align-items: center;
+        }
+        .modal-content {
+            width: 90%; max-height: 85%;
+            padding: 20px; text-align: center; color: white;
+            display: flex; flex-direction: column;
+        }
+        
+        /* माहिती स्क्रोल करण्यासाठी */
+        .scrollable-text {
+            text-align: left;
+            overflow-y: auto;
+            flex-grow: 1;
+            padding-right: 5px;
+            margin-top: 15px;
+            border-top: 1px solid rgba(255,255,255,0.2);
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        /* हेडलाईन्स आणि टेक्स्ट स्टाईल */
+        .info-heading { color: #FFD700; margin-top: 20px; margin-bottom: 10px; font-size: 18px; border-bottom: 1px solid rgba(255,215,0,0.3); padding-bottom: 5px; display: inline-block; }
+        .info-subheading { color: #FFD700; font-weight: bold; margin-bottom: 5px; display: block; }
+        .info-text { font-size: 14px; line-height: 1.6; color: #eee; margin-bottom: 15px; }
+        .info-list { font-size: 14px; line-height: 1.6; color: #ddd; padding-left: 20px; margin-bottom: 15px; }
+        .info-list li { margin-bottom: 8px; }
+
+        .close-btn { 
+            margin-top: 15px; padding: 12px; 
+            color: #FFD700; font-weight: bold; cursor: pointer; 
+            border: 1px solid #FFD700; border-radius: 25px;
+            background: rgba(0,0,0,0.3);
+        }
+
     </style>
 </head>
 <body>
-    <div id="splash-screen"><div class="loader">Connecting...</div></div>
+
+    <div id="app-background"></div>
+
+    <div id="login-screen">
+        <div class="glass-panel login-card">
+            <div class="app-title">स्थान शोधनी</div>
+            <div class="app-quote">
+                “तवं श्रीकृष्णरावो म्हणे उद्धवदेवा : हा ज्ञानरत्नाचा ठेवा |<br>
+                भलेतया हातीं नेदावा : अधिकारेंवीण ।।८१८।। <br>
+                - उ.गीता”
+            </div>
+
+            <input type="text" id="username" class="glass-input" placeholder="तुमचे नाव टाका (उदा. आदर्श )" autocomplete="off">
+            <button class="glass-btn" onclick="loginUser()">प्रवेश करा</button>
+        </div>
+    </div>
+
+    <div id="dashboard-screen">
+        <div class="glass-panel floating-menu" onclick="toggleSettings()">
+            <span class="menu-icon">⚙️</span>
+        </div>
+
+        <iframe id="web-frame" src=""></iframe>
+    </div>
+
+    <div id="settings-modal">
+        <div class="glass-panel modal-content">
+            <h2 style="margin:0; color:white;">प्रोफाईल आणि माहिती</h2>
+            <div style="margin-top:5px; font-size:13px; color:#ccc;">
+                👤 <span id="p-name" style="color:#FFD700; font-weight:bold;">User</span> | 📱 <span id="p-device">Device</span>
+            </div>
+
+            <div class="scrollable-text">
+                
+                <h3 class="info-heading">स्थानशोधनी - एक पवित्र शोधयात्रा</h3>
+                <p class="info-text">
+                    'स्थानशोधनी' हे ॲप महानुभाव पंथीय इतिहास, संस्कृती आणि तीर्थस्थानांच्या अभ्यासाला समर्पित आहे. ११ व्या शतकातील प्राचीन आणि महानुभावीय तीर्थस्थानांची पुराव्यांसहित आणि सचित्र माहिती सर्व भाविक आणि अभ्यासकांपर्यंत पोहोचवणे हा आमचा मुख्य उद्देश आहे.
+                </p>
+                <span class="info-subheading">या ॲपची वैशिष्ट्ये:</span>
+                <ul class="info-list">
+                    <li><b>प्राचीन तीर्थस्थाने:</b> नेवासा, वेरूळ, पैठण, डोंबेग्राम आणि इतर महत्त्वाच्या स्थानांची सविस्तर माहिती.</li>
+                    <li><b>ऐतिहासिक वारसा:</b> स्थानांचे दुर्मिळ फोटो, ऐतिहासिक नकाशे (Historical Maps) आणि पुराव्यांसहित आलेख.</li>
+                    <li><b>३६०° दर्शन:</b> निवडक स्थानांचे घरबसल्या ३६० अंशामध्ये दर्शन घेण्याची सुविधा.</li>
+                    <li><b>संशोधन:</b> जुन्या काळातील 'स्थानपोथी' आणि आधुनिक काळातील भौगोलिक स्थानांचा मेळ घालण्याचा प्रयत्न.</li>
+                </ul>
+                <p class="info-text" style="color:#bbb; font-size:13px; margin-top:20px; text-align:center;">
+                    <b>निर्माते:</b> श्री देवदत्त आश्रम, जाधववाडी.<br>
+                    © २०२३ स्थानशोधनी
+                </p>
+
+                <hr style="border-color:rgba(255,255,255,0.1); margin: 25px 0;">
+
+                <h3 class="info-heading">ॲप कसे वापरावे?</h3>
+                
+                <span class="info-subheading">गावे आणि स्थाने शोधण्यासाठी:</span>
+                <p class="info-text">तुम्ही 'गावांची सूची' या पर्यायावर जाऊन अद्याक्षराप्रमाणे (अ, आ, इ...) तुमच्या आवडीचे गाव निवडू शकता आणि तेथील स्थानांची माहिती मिळवू शकता.</p>
+                
+                <span class="info-subheading">नकाशे आणि फोटो:</span>
+                <p class="info-text">प्रत्येक स्थानाच्या पेजवर तुम्हाला 'गॅलरी' आणि 'हिस्टॉरिकल मॅप' (ऐतिहासिक नकाशे) पाहता येतील. तसेच '३६० टूर' पर्यायावर क्लिक करून तुम्ही परिसराचे पूर्ण दर्शन घेऊ शकता.</p>
+
+                <span class="info-subheading">संपर्क (Contact Us):</span>
+                <p class="info-text">
+                    जर तुम्हाला ॲप वापरताना काही अडचण येत असेल, किंवा तुम्हाला काही नवीन माहिती/सुचवणी द्यायची असेल, तर कृपया आम्हाला खालील ईमेलवर संपर्क साधा.<br><br>
+                    📧 <span style="color:#FFD700; font-weight:bold;">info@sthanshodhani.com</span>
+                </p>
+            </div>
+
+            <div class="close-btn" onclick="toggleSettings()">बंद करा (Close)</div>
+        </div>
+    </div>
 
     <script src="cordova.js"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-        import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+        // 'get' आणि 'child' ॲड केले आहेत हिस्ट्री वाचण्यासाठी
+        import { getDatabase, ref, update, onDisconnect, get, child } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAm_rgRbv0iih9gyPAtcnRKjzTV1An2IaU",
             authDomain: "sthanshodhani-62547.firebaseapp.com",
             databaseURL: "https://sthanshodhani-62547-default-rtdb.asia-southeast1.firebasedatabase.app",
             projectId: "sthanshodhani-62547",
-            storageBucket: "sthanshodhani-62547.firebasestorage.app",
-            messagingSenderId: "327126466172",
-            appId: "1:327126466172:web:63c86dd1ad62b8b26553f9",
-            measurementId: "G-YWPD4298CG"
+            appId: "1:327126466172:web:63c86dd1ad62b8b26553f9"
         };
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
+        let deviceUUID = "web_test"; 
+        let deviceModel = "Browser";
+
+        // HTML ला ॲक्सेस देण्यासाठी ग्लोबल फंक्शन्स
+        window.loginUser = loginUser;
+        window.toggleSettings = toggleSettings;
+
         document.addEventListener('deviceready', onDeviceReady, false);
 
         function onDeviceReady() {
-            try {
-                var deviceModel = device.model;
-                var deviceUUID = device.uuid;
-                var devicePlatform = device.platform + " " + device.version;
-                
-                writeUserData(deviceUUID, deviceModel, devicePlatform);
-            } catch (e) { console.error(e); }
-
-            setTimeout(function() {
-                window.location.href = "https://sthanshodhani.com";
-            }, 2500);
+            deviceUUID = device.uuid;
+            deviceModel = device.model;
+            checkLoginStatus();
         }
 
-        function writeUserData(userId, model, platform) {
-            const date = new Date();
-            set(ref(db, 'users/' + userId), {
-                model: model, platform: platform, lastSeen: date.toLocaleString(), status: "Active"
+        function checkLoginStatus() {
+            const savedName = localStorage.getItem("userName");
+            if(savedName) {
+                // ऑलरेडी लॉगिन असेल तर डॅशबोर्ड दाखवा
+                showDashboard(savedName);
+            }
+        }
+
+        function loginUser() {
+            const nameInput = document.getElementById("username").value;
+            if(nameInput.trim() === "") {
+                alert("कृपया नाव टाका (Please enter name)");
+                return;
+            }
+            localStorage.setItem("userName", nameInput);
+            showDashboard(nameInput);
+        }
+
+        function showDashboard(userName) {
+            document.getElementById("login-screen").style.display = "none";
+            document.getElementById("dashboard-screen").style.display = "block";
+            // वेबसाईट ॲपच्या आत फ्रेममध्ये लोड करा
+            document.getElementById("web-frame").src = "https://sthanshodhani.com";
+            
+            // प्रोफाईल माहिती अपडेट करा
+            document.getElementById("p-name").innerText = userName;
+            document.getElementById("p-device").innerText = deviceModel;
+
+            // ट्रॅकिंग सुरू करा
+            startTracking(userName);
+        }
+
+        // 🔥 सुधारित ट्रॅकिंग (History + Realtime)
+        function startTracking(name) {
+            // आजची तारीख (DD-MM-YYYY) फॉरमॅट
+            const dateObj = new Date();
+            const day = String(dateObj.getDate()).padStart(2, '0');
+            const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+            const year = dateObj.getFullYear();
+            const today = `${day}-${month}-${year}`;
+
+            const userRef = ref(db, 'users/' + deviceUUID);
+            const historyRef = ref(db, 'users/' + deviceUUID + '/history/' + today);
+
+            // 1. आजचा डेटा वाचणे
+            get(historyRef).then((snapshot) => {
+                let todayVisits = 0;
+                let todayMinutes = 0;
+
+                if (snapshot.exists()) {
+                    const data = snapshot.val();
+                    todayVisits = data.visits || 0;
+                    todayMinutes = data.minutes || 0;
+                }
+
+                // 2. मेन प्रोफाईल अपडेट (Online Status)
+                update(userRef, {
+                    name: name,
+                    model: deviceModel,
+                    platform: "Android (App)",
+                    status: "Online",
+                    lastSeen: new Date().toLocaleString()
+                });
+
+                // 3. आजच्या तारखेची हिस्ट्री अपडेट (Visit + 1)
+                update(historyRef, {
+                    visits: todayVisits + 1,
+                    minutes: todayMinutes,
+                    lastActive: new Date().toLocaleTimeString()
+                });
+
+                // 4. टाइमर: दर मिनिटाला वेळ वाढवणे
+                setInterval(() => {
+                    get(historyRef).then((snap) => {
+                        if(snap.exists()) {
+                            let mins = snap.val().minutes || 0;
+                            
+                            // हिस्ट्री अपडेट (वेळ वाढवा)
+                            update(historyRef, { 
+                                minutes: mins + 1,
+                                lastActive: new Date().toLocaleTimeString()
+                            });
+                            
+                            // मेन स्टेटस रिफ्रेश ठेवा (Online)
+                            update(userRef, { status: "Online" });
+                        }
+                    });
+                }, 60000); // 1 मिनिट
+
+            }).catch((error) => {
+                console.error("Firebase Error:", error);
             });
+
+            // 5. Offline Logic (ॲप बंद केल्यावर)
+            onDisconnect(userRef).update({
+                status: "Offline",
+                lastSeen: new Date().toLocaleString()
+            });
+        }
+
+        function toggleSettings() {
+            const modal = document.getElementById("settings-modal");
+            modal.style.display = (modal.style.display === "flex") ? "none" : "flex";
         }
     </script>
 </body>
