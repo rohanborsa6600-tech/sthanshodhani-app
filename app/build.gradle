@@ -2,12 +2,12 @@ plugins { id "com.android.application" }
 
 android {
     namespace "com.sthanshodhani.app"
-    compileSdk 34
+    compileSdk 33  // 34 वरून 33 केले (हे Stable आहे)
 
     defaultConfig {
         applicationId "com.sthanshodhani.app"
         minSdk 24
-        targetSdk 34
+        targetSdk 33 // इथे पण 33 केले
         versionCode 1
         versionName "1.0"
     }
@@ -20,5 +20,6 @@ android {
 
 dependencies {
     implementation "androidx.appcompat:appcompat:1.6.1"
-    implementation "com.google.android.material:material:1.10.0"
+    implementation "com.google.android.material:material:1.9.0" // मटेरियल लायब्ररी थोडी जुनी आणि स्टेबल वापरली
+    implementation "androidx.constraintlayout:constraintlayout:2.1.4"
 }
