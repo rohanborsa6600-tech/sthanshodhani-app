@@ -17,9 +17,10 @@ jobs:
       # --- STEP 1: प्रोजेक्ट तयार करणे ---
       - name: Create Native Project
         run: |
+          # Cordova Android 12.0.0 वापरू (हे Java 17 साठी बेस्ट आहे)
           cordova create myapp com.sthanshodhani.user "Sthanshodhani"
           cd myapp
-          cordova platform add android
+          cordova platform add android@12.0.0
           
           # Plugins
           cordova plugin add cordova-plugin-statusbar
@@ -33,13 +34,13 @@ jobs:
           sed -i "/<access origin=\"\*\" \/>/a <allow-navigation href=\"*\" />" config.xml
           cd ..
 
-      # --- STEP 2: Smart Index File ---
+      # --- STEP 2: Smart Index File (Firebase + Redirect) ---
       - name: Setup App Files
         run: |
           cp icon.png myapp/www/icon.png
           cp login_bg.png myapp/www/login_bg.png
           
-          # HTML फाईल (Firebase Logic सह)
+          # HTML फाईल (तुमच्या Firebase लिंकसह)
           echo "<!DOCTYPE html>
           <html>
           <head>
@@ -59,6 +60,7 @@ jobs:
                       var platform = device.platform;
                       var version = device.version;
                       
+                      // तुमची Firebase लिंक
                       var dbUrl = \"https://sthanshodhani-62547-default-rtdb.asia-southeast1.firebasedatabase.app\";
                       var finalUrl = dbUrl + \"/users/\" + uuid + \".json\";
 
@@ -73,7 +75,7 @@ jobs:
                       .then(openSite).catch(openSite);
 
                       function openSite() {
-                          setTimeout(function() { window.location.href = \"https://www.sthanshodhani.com\"; }, 2000);
+                          setTimeout(function() { window.location.href = \"https://www.sthanshodhani.com\"; }, 2500);
                       }
                   }, false);
               </script>
