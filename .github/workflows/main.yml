@@ -7,78 +7,68 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
+    
     steps:
-      # 1. कोड घेणे
       - uses: actions/checkout@v3
 
-      # 2. Node.js सेट करणे
       - uses: actions/setup-node@v3
         with:
           node-version: 16
       - run: npm install -g cordova
 
-      # 3. Java 17 इंस्टॉल करणे
       - uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
           java-version: '17'
 
-      # 4. नवीन फ्रेश प्रोजेक्ट बनवणे
-      - name: Create Fresh Cordova Project
+      - name: Create Cordova Project
         run: |
-          # प्रोजेक्ट तयार करा
-          cordova create SthanshodhaniApp com.sthanshodhani.app "Sthanshodhani"
-          cd SthanshodhaniApp
+          cordova create myapp com.sthanshodhani.app "Sthanshodhani"
+          cd myapp
           
-          # प्लगइन्स ॲड करा (Device Plugin विसरू नका)
+          # Plugins
+          cordova plugin add cordova-plugin-statusbar
+          cordova plugin add cordova-plugin-whitelist
           cordova plugin add cordova-plugin-device
           
-          # 🔥 सर्वात महत्त्वाचा बदल: इथे @12.0.0 लावणे गरजेचे आहे!
-          # हे लावले नाही तर पुन्हा XmlParser एरर येईल.
+          # 🔥 हाच तो बदल (ही लाईन सॅम्पलमध्ये जुनी होती, मी नवीन टाकली आहे)
           cordova platform add android@12.0.0
-          
           cd ..
 
-      # 5. सेटिंग्ज आणि लोगो लावणे
       - name: Configure App Settings & Logo
         run: |
-          cd SthanshodhaniApp
+          cd myapp
           
-          # 🔥 LOGO SETTING
-          # 1. आयकॉन सेट करा
+          # 🔥 1. LOGO ADD केला
           sed -i '/<widget/a <icon src="www/logo.png" />' config.xml
           
-          # 2. स्प्लॅश स्क्रीन (ॲप उघडताना लोगो दिसेल)
+          # 🔥 2. Splash Screen Logo
           sed -i '/<widget/a <preference name="AndroidWindowSplashScreenAnimatedIcon" value="www/logo.png" />' config.xml
           sed -i '/<widget/a <preference name="AndroidWindowSplashScreenBackground" value="#000000" />' config.xml
           
-          # फुल स्क्रीन मोड
+          # बाकी सर्व जुन्या सॅम्पलसारखेच
           sed -i '/<widget/a <preference name="Fullscreen" value="true" />' config.xml
-          # ओव्हरस्क्रोल बंद
-          sed -i '/<widget/a <preference name="DisallowOverscroll" value="true" />' config.xml
+          sed -i '/<widget/a <preference name="Orientation" value="portrait" />' config.xml
+          sed -i '/<widget/a <preference name="LoadUrlTimeoutValue" value="70000" />' config.xml
+          
           cd ..
 
-      # 6. तुमच्या फाईल्स कॉपी करणे
       - name: Copy Files to WWW
         run: |
-          # डिफॉल्ट फाईल्स हटवणे
-          rm SthanshodhaniApp/www/index.html
-          rm -rf SthanshodhaniApp/www/js
-          rm -rf SthanshodhaniApp/www/css
-          rm -rf SthanshodhaniApp/www/img
+          rm myapp/www/index.html
+          rm -rf myapp/www/css
+          rm -rf myapp/www/js
+          
+          # तुमच्या फाईल्स आणि लोगो कॉपी करणे
+          cp -r www/* myapp/www/
+          cp www/logo.png myapp/www/ || true
 
-          # तुमची www फोल्डर कॉपी करणे (यात logo.png आहे ना हे बघा)
-          cp -r www/* SthanshodhaniApp/www/
-
-      # 7. APK बिल्ड करणे
       - name: Build APK
         run: |
-          cd SthanshodhaniApp
+          cd myapp
           cordova build android --debug
 
-      # 8. APK अपलोड करणे
       - uses: actions/upload-artifact@v4
         with:
           name: Sthanshodhani-APK
-          path: SthanshodhaniApp/platforms/android/app/build/outputs/apk/debug/app-debug.apk
+          path: myapp/platforms/android/app/build/outputs/apk/debug/app-debug.apk
