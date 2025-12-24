@@ -1,4 +1,4 @@
-name: Build Sthanshodhani APK
+name: Build Sthanshodhani Final APK
 
 on:
   push:
@@ -9,72 +9,75 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. तुमचा कोड घेणे
+      # 1. कोड घेणे
       - uses: actions/checkout@v3
 
       # 2. Node.js सेट करणे
       - uses: actions/setup-node@v3
         with:
           node-version: 16
-      
-      # 3. Cordova टूल टाकणे
       - run: npm install -g cordova
 
-      # 4. Java 17 टाकणे
+      # 3. Java 17 इंस्टॉल करणे
       - uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
           java-version: '17'
 
-      # 5. नवीन फ्रेश प्रोजेक्ट बनवणे
+      # 4. नवीन फ्रेश प्रोजेक्ट बनवणे
       - name: Create Fresh Cordova Project
         run: |
+          # प्रोजेक्ट तयार करा
           cordova create SthanshodhaniApp com.sthanshodhani.app "Sthanshodhani"
           cd SthanshodhaniApp
           
+          # प्लगइन्स ॲड करा (Device Plugin विसरू नका)
           cordova plugin add cordova-plugin-device
           
-          # 🔥 इथे फक्त @12.0.0 केले आहे जेणेकरून तो XmlParser एरर येणार नाही
+          # 🔥 सर्वात महत्त्वाचा बदल: इथे @12.0.0 लावणे गरजेचे आहे!
+          # हे लावले नाही तर पुन्हा XmlParser एरर येईल.
           cordova platform add android@12.0.0
           
           cd ..
 
-      # 6. सेटिंग्ज आणि लोगो लावणे (इथे तुमच्या लोगोच्या ओळी टाकल्या आहेत)
-      - name: Configure Settings & Logo
+      # 5. सेटिंग्ज आणि लोगो लावणे
+      - name: Configure App Settings & Logo
         run: |
           cd SthanshodhaniApp
           
-          # 🔥 1. ही ओळ तुमचा LOGO सेट करेल
+          # 🔥 LOGO SETTING
+          # 1. आयकॉन सेट करा
           sed -i '/<widget/a <icon src="www/logo.png" />' config.xml
           
-          # 🔥 2. हे Android 12 वर ॲप उघडताना लोगो दाखवेल (Splash Screen)
+          # 2. स्प्लॅश स्क्रीन (ॲप उघडताना लोगो दिसेल)
           sed -i '/<widget/a <preference name="AndroidWindowSplashScreenAnimatedIcon" value="www/logo.png" />' config.xml
           sed -i '/<widget/a <preference name="AndroidWindowSplashScreenBackground" value="#000000" />' config.xml
-
+          
           # फुल स्क्रीन मोड
           sed -i '/<widget/a <preference name="Fullscreen" value="true" />' config.xml
           # ओव्हरस्क्रोल बंद
           sed -i '/<widget/a <preference name="DisallowOverscroll" value="true" />' config.xml
           cd ..
 
-      # 7. तुमच्या फाईल्स नवीन ॲपमध्ये टाकणे
-      - name: Copy User Files
+      # 6. तुमच्या फाईल्स कॉपी करणे
+      - name: Copy Files to WWW
         run: |
+          # डिफॉल्ट फाईल्स हटवणे
           rm SthanshodhaniApp/www/index.html
           rm -rf SthanshodhaniApp/www/js
           rm -rf SthanshodhaniApp/www/css
           rm -rf SthanshodhaniApp/www/img
 
-          # तुमची www फोल्डरची सर्व सामग्री कॉपी करणे
+          # तुमची www फोल्डर कॉपी करणे (यात logo.png आहे ना हे बघा)
           cp -r www/* SthanshodhaniApp/www/
 
-      # 8. APK फायनल बिल्ड करणे
+      # 7. APK बिल्ड करणे
       - name: Build APK
         run: |
           cd SthanshodhaniApp
           cordova build android --debug
 
-      # 9. APK अपलोड करणे
+      # 8. APK अपलोड करणे
       - uses: actions/upload-artifact@v4
         with:
           name: Sthanshodhani-APK
