@@ -9,65 +9,79 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
+      # 1. कोड चेकआउट करणे
       - uses: actions/checkout@v3
 
+      # 2. Node.js आणि Cordova इंस्टॉल करणे
       - uses: actions/setup-node@v3
         with:
           node-version: 16
       - run: npm install -g cordova
 
+      # 3. Java इंस्टॉल करणे (Android साठी)
       - uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
           java-version: '17'
 
+      # 4. Cordova प्रोजेक्ट तयार करणे आणि प्लगिन्स टाकणे
       - name: Create Cordova Project
         run: |
+          # नाव बदलले: Sthanshodhani
           cordova create myapp com.sthanshodhani.app "Sthanshodhani"
           cd myapp
           
-          # Plugins
+          # Plugins (तुमच्या कोडप्रमाणेच)
           cordova plugin add cordova-plugin-statusbar
+          cordova plugin add cordova-plugin-network-information
           cordova plugin add cordova-plugin-whitelist
           cordova plugin add cordova-plugin-device
           
-          # 🔥 हाच तो बदल (ही लाईन सॅम्पलमध्ये जुनी होती, मी नवीन टाकली आहे)
+          # 🔥 महत्त्वाचा बदल: इथे @12.0.0 केले आहे (एरर घालवण्यासाठी)
           cordova platform add android@12.0.0
           cd ..
 
-      - name: Configure App Settings & Logo
+      # 5. Config.xml सेटिंग्ज (तुम्ही दिलेल्या कोडमधील LOGO लॉजिक)
+      - name: Configure App Settings
         run: |
           cd myapp
           
-          # 🔥 1. LOGO ADD केला
+          # 🔥 1. App Icon सेट करणे
           sed -i '/<widget/a <icon src="www/logo.png" />' config.xml
           
-          # 🔥 2. Splash Screen Logo
+          # 🔥 2. Splash Screen Logo (Android 12+)
           sed -i '/<widget/a <preference name="AndroidWindowSplashScreenAnimatedIcon" value="www/logo.png" />' config.xml
           sed -i '/<widget/a <preference name="AndroidWindowSplashScreenBackground" value="#000000" />' config.xml
           
-          # बाकी सर्व जुन्या सॅम्पलसारखेच
+          # Fullscreen आणि Portrait Mode
           sed -i '/<widget/a <preference name="Fullscreen" value="true" />' config.xml
           sed -i '/<widget/a <preference name="Orientation" value="portrait" />' config.xml
-          sed -i '/<widget/a <preference name="LoadUrlTimeoutValue" value="70000" />' config.xml
           
+          # Timeout वाढवणे
+          sed -i '/<widget/a <preference name="LoadUrlTimeoutValue" value="70000" />' config.xml
           cd ..
 
+      # 6. फाईल्स कॉपी करणे
       - name: Copy Files to WWW
         run: |
+          # जुन्या डिफॉल्ट फाईल्स काढणे
           rm myapp/www/index.html
           rm -rf myapp/www/css
           rm -rf myapp/www/js
           
-          # तुमच्या फाईल्स आणि लोगो कॉपी करणे
+          # तुमच्या www फोल्डरमधील सर्व फाईल्स कॉपी करणे
           cp -r www/* myapp/www/
+          
+          # लोगो व्यवस्थित कॉपी झाला ना याची खात्री करणे
           cp www/logo.png myapp/www/ || true
 
+      # 7. APK बिल्ड करणे
       - name: Build APK
         run: |
           cd myapp
           cordova build android --debug
 
+      # 8. APK अपलोड करणे
       - uses: actions/upload-artifact@v4
         with:
           name: Sthanshodhani-APK
