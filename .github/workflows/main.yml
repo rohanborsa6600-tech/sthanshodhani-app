@@ -26,7 +26,7 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      # 5. नवीन फ्रेश प्रोजेक्ट बनवणे (इथेच खरी जादू आहे!)
+      # 5. नवीन फ्रेश प्रोजेक्ट बनवणे
       - name: Create Fresh Cordova Project
         run: |
           # नवीन कोरा प्रोजेक्ट तयार करा
@@ -35,22 +35,34 @@ jobs:
           # प्रोजेक्टच्या आत जा
           cd SthanshodhaniApp
           
-          # प्लगइन्स ॲड करा (Device Plugin महत्त्वाचे आहे UUID साठी)
+          # प्लगइन्स ॲड करा
           cordova plugin add cordova-plugin-device
+          cordova plugin add cordova-plugin-statusbar
+          cordova plugin add cordova-plugin-whitelist
           
           # Android प्लॅटफॉर्म ॲड करा
-          cordova platform add android
+          cordova platform add android@12.0.0
           
           cd ..
 
-      # 6. सेटिंग्ज लावणे (Full Screen, No Zoom)
-      - name: Configure Settings
+      # 6. सेटिंग्ज लावणे (Logo & Full Screen)
+      - name: Configure Settings & Icon
         run: |
           cd SthanshodhaniApp
+          
+          # 🔥 ॲप आयकॉन सेट करणे (हे महत्त्वाचे आहे)
+          sed -i '/<widget/a <icon src="www/logo.png" />' config.xml
+          
           # फुल स्क्रीन मोड
           sed -i '/<widget/a <preference name="Fullscreen" value="true" />' config.xml
-          # ओव्हरस्क्रोल बंद (रबर बँड इफेक्ट नको)
+          
+          # ओव्हरस्क्रोल बंद
           sed -i '/<widget/a <preference name="DisallowOverscroll" value="true" />' config.xml
+          
+          # Android 12 Splash Screen Fix
+          sed -i '/<widget/a <preference name="AndroidWindowSplashScreenAnimatedIcon" value="www/logo.png" />' config.xml
+          sed -i '/<widget/a <preference name="AndroidWindowSplashScreenBackground" value="#000000" />' config.xml
+          
           cd ..
 
       # 7. तुमच्या फाईल्स नवीन ॲपमध्ये टाकणे
@@ -62,8 +74,7 @@ jobs:
           rm -rf SthanshodhaniApp/www/css
           rm -rf SthanshodhaniApp/www/img
 
-          # तुमची www फोल्डरची सर्व सामग्री कॉपी करणे
-          # (हे GitHub वरील तुमच्या www फोल्डरमधील index.html आणि img उचलते)
+          # तुमची www फोल्डरची सर्व सामग्री (Logo सह) कॉपी करणे
           cp -r www/* SthanshodhaniApp/www/
 
       # 8. APK फायनल बिल्ड करणे
@@ -72,7 +83,7 @@ jobs:
           cd SthanshodhaniApp
           cordova build android --debug
 
-      # 9. APK अपलोड करणे (तुम्हाला डाउनलोड करण्यासाठी)
+      # 9. APK अपलोड करणे
       - uses: actions/upload-artifact@v4
         with:
           name: Sthanshodhani-APK
