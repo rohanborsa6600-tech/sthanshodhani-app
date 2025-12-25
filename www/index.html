@@ -8,26 +8,33 @@
     <link href="https://fonts.googleapis.com/css2?family=Gotu&family=Tiro+Devanagari+Marathi&display=swap" rel="stylesheet">
 
     <style>
-        /* 1. बेसिक सेटिंग्ज (Full Screen Fix) */
+        /* 1. बेसिक सेटिंग्ज */
         body, html {
             margin: 0; padding: 0; 
             height: 100%; width: 100%;
             background-color: #000; 
-            overflow: hidden; /* स्क्रोल बार नको */
+            overflow: hidden;
             font-family: 'Gotu', sans-serif;
-            -webkit-user-select: none; /* टेक्स्ट सिलेक्ट नको */
+            -webkit-user-select: none; user-select: none;
         }
 
-        /* 2. मुख्य बॅकग्राउंड (White Strip Fix) */
+        /* 2. बॅकग्राउंड इमेज (स्वतःचा फोटो) */
         #app-background {
             position: fixed; 
             top: 0; left: 0; right: 0; bottom: 0;
-            width: 100vw; height: 100vh; /* व्हूपोर्टची पूर्ण हाईट */
-            background-image: url('https://images.unsplash.com/photo-1660721858662-9ad9f37447f7?q=80&w=1287&auto=format&fit=crop');
+            width: 100vw; height: 100vh;
+            /* इथे login_bg.png वापरले आहे */
+            background-image: url('login_bg.png'); 
+            /* जर फोटो नसेल तर इंटरनेटवरील इमेज दिसेल (बॅकअप) */
+            background-image: url('login_bg.png'), url('https://images.unsplash.com/photo-1660721858662-9ad9f37447f7?q=80&w=1287&auto=format&fit=crop');
             background-size: cover; 
             background-position: center center;
             background-repeat: no-repeat;
             z-index: -1;
+        }
+        .dark-overlay {
+            position: fixed; top:0; left:0; width:100%; height:100%;
+            background: rgba(0,0,0,0.4); z-index: -1;
         }
 
         /* 3. Glass Panel Design */
@@ -47,9 +54,6 @@
             justify-content: center; align-items: center;
             padding: 20px; box-sizing: border-box;
             z-index: 1000;
-            /* सेफ एरिया सोडून खाली (Notch साठी) */
-            padding-top: env(safe-area-inset-top); 
-            padding-bottom: env(safe-area-inset-bottom);
         }
 
         .login-card {
@@ -64,16 +68,15 @@
             margin-bottom: 15px;
         }
 
-        /* 🔥 नवीन 4 ओळींचे सबटायटल डिझाइन */
+        /* Subtitle Styling */
         .app-quote {
             font-size: 13px; color: #fff; 
-            font-style: italic; line-height: 1.8;
+            font-style: italic; line-height: 1.6;
             margin-bottom: 30px;
             text-shadow: 0 1px 2px rgba(0,0,0,0.8);
-            border-left: 2px solid #FFD700; /* बाजूला सोनेरी रेष */
+            border-left: 3px solid #FFD700;
             padding-left: 10px;
-            display: inline-block;
-            text-align: left; /* ओळी एकाखाली एक व्यवस्थित दिसण्यासाठी */
+            text-align: left;
         }
 
         .glass-input {
@@ -87,74 +90,95 @@
 
         .glass-btn {
             padding: 12px 40px; border-radius: 50px;
-            background: linear-gradient(135deg, #FFD700, #FFA500); /* बटण पण सोनेरी */
-            border: none;
-            color: black; font-size: 18px; font-weight: bold;
-            cursor: pointer; transition: 0.3s;
-            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            border: none; color: black; font-size: 18px; font-weight: bold;
+            cursor: pointer; box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
         }
-        .glass-btn:active { transform: scale(0.95); }
 
-        /* 5. Dashboard */
+        /* 5. Dashboard & Settings */
         #dashboard-screen { display: none; width: 100%; height: 100%; }
         #web-frame { width: 100%; height: 100%; border: none; background: white; }
         
         .floating-menu {
-            position: absolute; top: 40px; right: 20px; /* Top वाढवले आहे Notch साठी */
-            width: 50px; height: 50px; border-radius: 50%;
+            position: absolute; top: 40px; right: 20px;
+            width: 45px; height: 45px; border-radius: 50%;
             display: flex; justify-content: center; align-items: center;
             z-index: 500; cursor: pointer;
-            background: rgba(0,0,0,0.5); /* बटण गडद केले */
+            background: #FFD700; box-shadow: 0 4px 10px rgba(0,0,0,0.5);
         }
-        .menu-icon { font-size: 24px; color: #FFD700; }
+        .menu-icon { font-size: 22px; color: black; }
 
-        /* 6. Settings Modal */
+        /* 6. Settings Modal (3 Tabs) */
         #settings-modal {
             display: none; position: absolute; top: 0; left: 0;
             width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8); z-index: 2000;
+            background: rgba(0,0,0,0.85); z-index: 2000;
             justify-content: center; align-items: center;
         }
         .modal-content {
-            width: 90%; max-height: 80%;
-            padding: 20px; text-align: center; color: white;
+            width: 90%; max-width: 400px; max-height: 80%;
             display: flex; flex-direction: column;
+            color: white; overflow: hidden;
+            background: rgba(30, 30, 30, 0.95);
+            border: 1px solid #FFD700;
         }
-        .scrollable-text {
-            text-align: left; overflow-y: auto; flex-grow: 1;
-            padding-right: 5px; margin-top: 15px;
-            border-top: 1px solid rgba(255,255,255,0.2);
+        
+        /* Tabs Header */
+        .tabs-header {
+            display: flex; background: rgba(255,255,255,0.1);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
         }
-        .close-btn { 
-            margin-top: 15px; padding: 12px; 
-            color: #FFD700; font-weight: bold; cursor: pointer; 
-            border: 1px solid #FFD700; border-radius: 25px;
-            background: rgba(0,0,0,0.3);
+        .tab-btn {
+            flex: 1; padding: 15px 5px; text-align: center;
+            font-size: 14px; cursor: pointer; color: #aaa;
+            border-bottom: 3px solid transparent;
+        }
+        .tab-btn.active {
+            color: #FFD700; border-bottom: 3px solid #FFD700; font-weight: bold;
+        }
+
+        /* Tab Content */
+        .tab-content {
+            padding: 20px; overflow-y: auto; flex-grow: 1;
+            font-size: 14px; line-height: 1.6; color: #eee;
+            text-align: left; display: none; /* Default hidden */
+        }
+        .tab-content.active { display: block; }
+
+        h3 { color: #FFD700; margin-top: 0; border-bottom: 1px solid #555; padding-bottom: 5px; }
+        ul { padding-left: 20px; }
+        li { margin-bottom: 8px; }
+
+        .close-btn {
+            padding: 15px; text-align: center;
+            background: #FFD700; color: black;
+            font-weight: bold; cursor: pointer;
         }
     </style>
 </head>
 <body>
 
     <div id="app-background"></div>
+    <div class="dark-overlay"></div>
 
     <div id="login-screen">
         <div class="glass-panel login-card">
             <div class="app-title">स्थान शोधनी</div>
             
             <div class="app-quote">
-                सर्वेशा पदसंगमी महितळी तीर्थाभिदा पातली ठेवीली |<br>
-                निजशक्ती ती पुरविती सत्कामना चिंतली ॥<br><br>
-                स्थानाचा महिमा स्वये निरुपिला देवे स्वभक्तांप्रती |<br>
-                थोरी ती चहुसाधनी गणुनिया भाविकही वंदिती ॥
-            </div>
+                सर्वेशा पदसंगमी महितळी तीर्थाभिदा पातली<br>
+               ठेवीली निजशक्ती ती पुरविती सत्कामना चिंतली<br><br>
+                स्थानाचा महिमा स्वये निरुपिला देवे स्वभक्तांप्रती<br>
+                थोरी ती चहुसाधनी गणुनिया भाविकही वंदिती
+          </div>
 
-            <input type="text" id="username" class="glass-input" placeholder="तुमचे नाव टाका (उदा. आदर्श)" autocomplete="off">
+            <input type="text" id="username" class="glass-input" placeholder="तुमचे नाव टाका eg.ADARSH" autocomplete="off">
             <button class="glass-btn" onclick="loginUser()">प्रवेश करा</button>
         </div>
     </div>
 
     <div id="dashboard-screen">
-        <div class="glass-panel floating-menu" onclick="toggleSettings()">
+        <div class="floating-menu" onclick="toggleSettings()">
             <span class="menu-icon">⚙️</span>
         </div>
         <iframe id="web-frame" src=""></iframe>
@@ -162,25 +186,54 @@
 
     <div id="settings-modal">
         <div class="glass-panel modal-content">
-            <h2 style="margin:0; color:#FFD700;">प्रोफाईल आणि माहिती</h2>
-            <div style="margin-top:5px; font-size:13px; color:#ccc;">
-                👤 <span id="p-name" style="color:white; font-weight:bold;">User</span>
+            
+            <div class="tabs-header">
+                <div class="tab-btn active" onclick="switchTab('profile')">👤 प्रोफाईल</div>
+                <div class="tab-btn" onclick="switchTab('about')">ℹ️ आमच्याबद्दल</div>
+                <div class="tab-btn" onclick="switchTab('help')">❓ मदत</div>
             </div>
 
-            <div class="scrollable-text">
-                <h3 style="color:#FFD700; margin-top:15px;">स्थानशोधनी - एक पवित्र शोधयात्रा</h3>
-                <p style="font-size:14px; line-height:1.6; color:#eee;">
-                    'स्थानशोधनी' हे ॲप महानुभाव पंथीय इतिहास, संस्कृती आणि तीर्थस्थानांच्या अभ्यासाला समर्पित आहे.
-                </p>
-                <ul style="font-size:14px; line-height:1.6; color:#ddd; padding-left:20px;">
-                    <li><b>प्राचीन तीर्थस्थाने:</b> नेवासा, वेरूळ, पैठण इ.</li>
-                    <li><b>३६०° दर्शन:</b> घरबसल्या स्थानांचे दर्शन.</li>
-                    <li><b>संशोधन:</b> स्थानपोथी आणि नकाशांचा अभ्यास.</li>
+            <div id="tab-profile" class="tab-content active">
+                <div style="text-align:center; padding-top:20px;">
+                    <div style="font-size:60px;">👤</div>
+                    <h2 id="p-name" style="color:white; margin:10px 0;">User</h2>
+                    <div style="color:#00ff00; font-weight:bold;">● Status: Online</div>
+                    <p style="color:#aaa; font-size:12px; margin-top:20px;">Device ID: <span id="p-uuid">...</span></p>
+                </div>
+            </div>
+
+            <div id="tab-about" class="tab-content">
+                <h3>स्थानशोधनी - एक पवित्र शोधयात्रा</h3>
+                <p>'स्थानशोधनी' हे ॲप महानुभाव पंथीय इतिहास, संस्कृती आणि तीर्थस्थानांच्या अभ्यासाला समर्पित आहे. ११ व्या शतकातील प्राचीन आणि महानुभावीय तीर्थस्थानांची पुराव्यांसहित आणि सचित्र माहिती सर्व भाविक आणि अभ्यासकांपर्यंत पोहोचवणे हा आमचा मुख्य उद्देश आहे.</p>
+                
+                <h4 style="color:#FFD700; margin-bottom:5px;">या ॲपची वैशिष्ट्ये:</h4>
+                <ul>
+                    <li><b>प्राचीन तीर्थस्थाने:</b> नेवासा, वेरूळ, पैठण, डोंबेग्राम आणि इतर महत्त्वाच्या स्थानांची सविस्तर माहिती.</li>
+                    <li><b>ऐतिहासिक वारसा:</b> स्थानांचे दुर्मिळ फोटो, ऐतिहासिक नकाशे (Historical Maps) आणि पुराव्यांसहित आलेख.</li>
+                    <li><b>३६०° दर्शन:</b> निवडक स्थानांचे घरबसल्या ३६० अंशामध्ये दर्शन घेण्याची सुविधा.</li>
+                    <li><b>संशोधन:</b> जुन्या काळातील 'स्थानपोथी' आणि आधुनिक काळातील भौगोलिक स्थानांचा मेळ घालण्याचा प्रयत्न.</li>
                 </ul>
-                <p style="text-align:center; color:#888; font-size:12px; margin-top:20px;">
+                <p style="text-align:center; color:#888; margin-top:15px; font-size:12px;">
                     निर्माते: श्री देवदत्त आश्रम, जाधववाडी.<br>© २०२३ स्थानशोधनी
                 </p>
             </div>
+
+            <div id="tab-help" class="tab-content">
+                <h3>ॲप कसे वापरावे?</h3>
+                
+                <p><b>गावे आणि स्थाने शोधण्यासाठी:</b><br>
+                तुम्ही 'गावांची सूची' या पर्यायावर जाऊन अद्याक्षराप्रमाणे (अ, आ, इ...) तुमच्या आवडीचे गाव निवडू शकता आणि तेथील स्थानांची माहिती मिळवू शकता.</p>
+
+                <p><b>नकाशे आणि फोटो:</b><br>
+                प्रत्येक स्थानाच्या पेजवर तुम्हाला 'गॅलरी' आणि 'हिस्टॉरिकल मॅप' (ऐतिहासिक नकाशे) पाहता येतील. तसेच '३६० टूर' पर्यायावर क्लिक करून तुम्ही परिसराचे पूर्ण दर्शन घेऊ शकता.</p>
+
+                <div style="background:rgba(255,255,255,0.1); padding:10px; border-radius:10px; margin-top:15px;">
+                    <b style="color:#FFD700;">संपर्क (Contact Us):</b><br>
+                    जर तुम्हाला ॲप वापरताना काही अडचण येत असेल, किंवा तुम्हाला काही नवीन माहिती/सुचवणी द्यायची असेल, तर कृपया आम्हाला खालील ईमेलवर संपर्क साधा.<br><br>
+                    📧 <span style="color:#00ffff;">info@sthanshodhani.com</span>
+                </div>
+            </div>
+
             <div class="close-btn" onclick="toggleSettings()">बंद करा</div>
         </div>
     </div>
@@ -188,7 +241,7 @@
     <script src="cordova.js"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-        import { getDatabase, ref, update, onDisconnect, get, child } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+        import { getDatabase, ref, update, onDisconnect, get } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAm_rgRbv0iih9gyPAtcnRKjzTV1An2IaU",
@@ -201,21 +254,22 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        let deviceUUID = "web_test"; 
+        let deviceUUID = "android_web_test"; 
         let deviceModel = "Browser";
 
         window.loginUser = loginUser;
         window.toggleSettings = toggleSettings;
+        window.switchTab = switchTab;
 
         document.addEventListener('deviceready', onDeviceReady, false);
 
         function onDeviceReady() {
             deviceUUID = device.uuid;
             deviceModel = device.model;
-            // White Strip घालवण्यासाठी Status Bar सेटिंग
+            
             if(window.StatusBar) {
-                StatusBar.overlaysWebView(true); // कंटेंट बारच्या मागे जाईल
-                StatusBar.styleLightContent(); // आयकॉन पांढरे होतील
+                StatusBar.overlaysWebView(true);
+                StatusBar.styleLightContent();
             }
             checkLoginStatus();
         }
@@ -241,12 +295,38 @@
             document.getElementById("login-screen").style.display = "none";
             document.getElementById("dashboard-screen").style.display = "block";
             document.getElementById("web-frame").src = "https://sthanshodhani.com";
+            
             document.getElementById("p-name").innerText = userName;
+            document.getElementById("p-uuid").innerText = deviceUUID.substring(0, 8) + "...";
 
             startTracking(userName);
         }
 
-        // 🔥 Heartbeat & History Logic
+        // --- Tabs Logic ---
+        function switchTab(tabName) {
+            // Remove active class from all
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+            // Add active class to selected
+            if(tabName === 'profile') {
+                document.querySelectorAll('.tab-btn')[0].classList.add('active');
+                document.getElementById('tab-profile').classList.add('active');
+            } else if (tabName === 'about') {
+                document.querySelectorAll('.tab-btn')[1].classList.add('active');
+                document.getElementById('tab-about').classList.add('active');
+            } else if (tabName === 'help') {
+                document.querySelectorAll('.tab-btn')[2].classList.add('active');
+                document.getElementById('tab-help').classList.add('active');
+            }
+        }
+
+        function toggleSettings() {
+            const modal = document.getElementById("settings-modal");
+            modal.style.display = (modal.style.display === "flex") ? "none" : "flex";
+        }
+
+        // --- Heartbeat Logic ---
         function startTracking(name) {
             const dateObj = new Date();
             const day = String(dateObj.getDate()).padStart(2, '0');
@@ -267,34 +347,29 @@
                     todayMinutes = data.minutes || 0;
                 }
 
-                // 1. Main Profile (With Heartbeat)
                 update(userRef, {
                     name: name,
                     model: deviceModel,
                     platform: "Android (App)",
                     status: "Online",
-                    lastSeen: new Date().toLocaleString(),
-                    lastOnlineTimestamp: Date.now() // Heartbeat Start
+                    lastSeen: new Date().toLocaleTimeString(),
+                    lastOnlineTimestamp: Date.now()
                 });
 
-                // 2. Daily History
                 update(historyRef, {
                     visits: todayVisits + 1,
                     minutes: todayMinutes,
                     lastActive: new Date().toLocaleTimeString()
                 });
 
-                // 3. Timer (Every 1 Minute)
                 setInterval(() => {
                     get(historyRef).then((snap) => {
                         if(snap.exists()) {
                             let mins = snap.val().minutes || 0;
-                            // Update History
                             update(historyRef, { 
                                 minutes: mins + 1,
                                 lastActive: new Date().toLocaleTimeString()
                             });
-                            // Send Heartbeat (Online Proof)
                             update(userRef, { 
                                 status: "Online",
                                 lastOnlineTimestamp: Date.now()
@@ -302,19 +377,12 @@
                         }
                     });
                 }, 60000);
-
             });
 
-            // Offline Logic
             onDisconnect(userRef).update({
                 status: "Offline",
                 lastSeen: new Date().toLocaleString()
             });
-        }
-
-        function toggleSettings() {
-            const modal = document.getElementById("settings-modal");
-            modal.style.display = (modal.style.display === "flex") ? "none" : "flex";
         }
     </script>
 </body>
