@@ -16,13 +16,14 @@
             overflow: hidden;
             font-family: 'Gotu', sans-serif;
             -webkit-user-select: none; user-select: none;
+            overscroll-behavior: none; /* Prevent scroll bounce showing white background */
         }
 
         /* 2. बॅकग्राउंड इमेज (स्वतःचा फोटो) */
         #app-background {
             position: fixed; 
             top: 0; left: 0; right: 0; bottom: 0;
-            width: 100vw; height: 100vh;
+            width: 100%; height: 100%;
             /* इथे login_bg.png वापरले आहे */
             background-image: url('login_bg.png'); 
             /* जर फोटो नसेल तर इंटरनेटवरील इमेज दिसेल (बॅकअप) */
@@ -97,7 +98,7 @@
 
         /* 5. Dashboard & Settings */
         #dashboard-screen { display: none; width: 100%; height: 100%; }
-        #web-frame { width: 100%; height: 100%; border: none; background: white; }
+        #web-frame { width: 100%; height: 100%; border: none; background: transparent; }
         
         .floating-menu {
             position: absolute; top: 40px; right: 20px;
@@ -254,8 +255,13 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        let deviceUUID = "android_web_test"; 
+        let deviceUUID = localStorage.getItem("deviceUUID") || "android_web_" + Math.random().toString(36).substr(2, 9);
         let deviceModel = "Browser";
+
+        // Save generated UUID if not present
+        if (!localStorage.getItem("deviceUUID")) {
+            localStorage.setItem("deviceUUID", deviceUUID);
+        }
 
         window.loginUser = loginUser;
         window.toggleSettings = toggleSettings;
@@ -270,7 +276,16 @@
             if(window.StatusBar) {
                 StatusBar.overlaysWebView(true);
                 StatusBar.styleLightContent();
+                // Ensure transparent background for StatusBar
+                if (StatusBar.backgroundColorByHexString) {
+                    StatusBar.backgroundColorByHexString('#00000000');
+                }
             }
+            checkLoginStatus();
+        }
+
+        // Check login status immediately for web (in case deviceready doesn't fire)
+        if (!window.cordova) {
             checkLoginStatus();
         }
 
