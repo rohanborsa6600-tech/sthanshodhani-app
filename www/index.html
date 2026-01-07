@@ -254,8 +254,13 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        let deviceUUID = "android_web_test"; 
+        let deviceUUID = localStorage.getItem("deviceUUID") || "android_web_" + Math.random().toString(36).substr(2, 9);
         let deviceModel = "Browser";
+
+        // Save generated UUID if not present
+        if (!localStorage.getItem("deviceUUID")) {
+            localStorage.setItem("deviceUUID", deviceUUID);
+        }
 
         window.loginUser = loginUser;
         window.toggleSettings = toggleSettings;
@@ -271,6 +276,11 @@
                 StatusBar.overlaysWebView(true);
                 StatusBar.styleLightContent();
             }
+            checkLoginStatus();
+        }
+
+        // Check login status immediately for web (in case deviceready doesn't fire)
+        if (!window.cordova) {
             checkLoginStatus();
         }
 
